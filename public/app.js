@@ -217,8 +217,13 @@ function spinTo(id, items, index) {
   const before = items.slice(0, index).reduce((sum, item) => sum + item.weight, 0);
   const target = 360 - ((before + items[index].weight / 2) / total * 360);
   const old = id === 'viewer-wheel' ? viewerRotation : weightedRotation;
-  const next = old + 720 + ((target - old % 360 + 360) % 360);
-  $(id).style.transform = `rotate(${next}deg)`;
+  const wheel = $(id);
+  const next = old + 1800 + ((target - old % 360 + 360) % 360);
+  wheel.classList.remove('spinning');
+  void wheel.offsetWidth;
+  wheel.classList.add('spinning');
+  wheel.style.transform = `rotate(${next}deg)`;
+  window.setTimeout(() => wheel.classList.remove('spinning'), 3000);
   if (id === 'viewer-wheel') viewerRotation = next; else weightedRotation = next;
 }
 
@@ -307,7 +312,7 @@ function applyState(next) {
   $('speaker-name').textContent = speaker?.nickname || '아직 주인공이 없어요';
   $('speaker-hint').textContent = speaker ? '지금 채팅하면 목소리로 전해져요.' : '룰렛을 돌려 한 사람을 만나보세요.';
   $('draw-title').textContent = speaker ? `${speaker.nickname} 님, 너의 차례!` : '다음 주인공을 만나볼까요?';
-  $('draw-description').textContent = speaker ? '발언권은 이미 시작됐어요. 바로 대화해 보세요.' : '당첨되는 순간, 30초 동안 채팅이 음성으로 나와요.';
+  $('draw-description').textContent = speaker ? '발언권은 이미 시작됐어요. 바로 대화해 보세요.' : '당첨되는 순간, 45초 동안 채팅이 음성으로 나와요.';
   if (!speaker) $('speaking-text').querySelector('p').textContent = '당첨자의 채팅을 기다리고 있어요.';
   if (speaker && speaker.round !== lastRound) {
     lastRound = speaker.round;
@@ -337,9 +342,9 @@ function applyState(next) {
 }
 
 function tick() {
-  const remaining = state?.speaker ? Math.max(0, state.speaker.endsAt - Date.now() - serverOffset) : 30000;
+  const remaining = state?.speaker ? Math.max(0, state.speaker.endsAt - Date.now() - serverOffset) : 45000;
   $('seconds').textContent = Math.ceil(remaining / 1000).toString().padStart(2, '0');
-  $('timer-fill').style.width = `${remaining / 300}%`;
+  $('timer-fill').style.width = `${remaining / 450}%`;
   if (state?.speaker && !remaining) { stopSpeech(); $('speaker-status').textContent = '시간 종료'; }
 }
 

@@ -87,8 +87,8 @@ export class Room extends EventEmitter {
     this.collecting = false;
     this.previousWinners.add(chosen.id);
     const startsAt = this.now();
-    this.speaker = { ...chosen, round: ++this.round, startsAt, endsAt: startsAt + 30000 };
-    this.speakerTimer = setTimeout(() => this.stopSpeaker(), 30000);
+    this.speaker = { ...chosen, round: ++this.round, startsAt, endsAt: startsAt + 45000 };
+    this.speakerTimer = setTimeout(() => this.stopSpeaker(), 45000);
     this.speakerTimer.unref?.();
     this.changed();
     return this.speaker;

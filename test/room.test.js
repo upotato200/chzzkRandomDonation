@@ -28,7 +28,7 @@ test('모집 중이면 일반 채팅으로 자동 참가하고, 중복 재전송
   room.close();
 });
 
-test('당첨 즉시 30초 시작, 당첨자만 읽고 정확한 종료 경계 이후는 차단한다', () => {
+test('당첨 즉시 45초 시작, 당첨자만 읽고 정확한 종료 경계 이후는 차단한다', () => {
   let now = 100000;
   const room = new Room('a', 'A', true, () => now);
   room.participants.set('winner', { id: 'winner', nickname: '당첨자' });
@@ -36,13 +36,13 @@ test('당첨 즉시 30초 시작, 당첨자만 읽고 정확한 종료 경계 �
   room.on('tts', (message) => output.push(message));
   room.drawViewer();
   assert.equal(room.speaker.startsAt, 100000);
-  assert.equal(room.speaker.endsAt, 130000);
+  assert.equal(room.speaker.endsAt, 145000);
   assert.equal(room.collecting, false);
   room.ingest(event('a', 'other', '내 채팅', now));
   room.ingest(event('a', 'winner', '준비 없이 바로', now));
-  now = 129999;
+  now = 144999;
   room.ingest(event('a', 'winner', '마지막', now));
-  now = 130000;
+  now = 145000;
   room.ingest(event('a', 'winner', '시간 지남', now));
   assert.deepEqual(output.map((m) => m.text), ['준비 없이 바로', '마지막']);
   assert.equal(room.speaker, null);
