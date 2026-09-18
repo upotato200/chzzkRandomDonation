@@ -43,7 +43,7 @@
         <div class="studio-grid">
           <aside class="panel participants-panel">
             <div class="panel-heading"><h2><svg><use href="#i-users"/></svg>참가자</h2><span class="count" id="participant-count">0</span></div>
-            <div class="join-instruction"><span>채팅에</span><code>!참여</code><span>를 입력하면 참가</span></div>
+            <div class="join-instruction"><span>모집 중 채팅 한 번이면 자동 참가</span></div>
             <div class="participant-list" id="participants"><div class="empty"><svg><use href="#i-users"/></svg><p>첫 참가자를 기다리고 있어요</p><small>채널 연결 후 모집을 시작해 주세요.</small></div></div>
             <div class="participants-footer"><label class="check"><input type="checkbox" id="exclude-winners" checked>이전 당첨자 제외</label><div class="button-row"><button id="collect" class="secondary" disabled>모집 시작</button><button id="reset-participants" class="ghost" disabled>초기화</button></div></div>
           </aside>
@@ -74,7 +74,7 @@
               <label for="poll-options">선택지 <span class="subtle">한 줄에 하나씩 · 2~10개</span></label><textarea id="poll-options" rows="6" required>게임 한 판 더
 시청자와 수다
 밸런스 게임</textarea>
-              <p class="hint">채팅에 <code>!투표1</code>, <code>!투표2</code>처럼 입력해요.<br>다시 투표하면 마지막 선택으로 변경돼요.</p>
+              <p class="hint">채팅에 <code>!투표1</code>, <code>!투표2</code>처럼 입력해요.<br>모집 중이면 투표한 사람도 자동 참가하며, 다시 투표하면 마지막 선택으로 변경돼요.</p>
               <button class="primary" id="poll-start" type="submit" disabled>투표 시작하기 <svg><use href="#i-arrow"/></svg></button>
             </form>
           </section>
@@ -100,7 +100,7 @@
     </main>
     <div id="toast" role="status" aria-live="polite" hidden></div>
     <dialog id="setup-dialog"><button class="dialog-close" aria-label="닫기" data-close>×</button><span class="eyebrow">CONNECT YOUR CHANNEL</span><h2>치지직을 연결해 볼까요?</h2><p>서버에 치지직 앱 설정이 아직 없어요. 앱 설정 후 서버를 다시 시작하면 연결할 수 있어요.</p><ol><li><a href="https://developers.chzzk.naver.com/application" target="_blank" rel="noopener noreferrer">치지직 개발자 센터</a>에서 앱을 등록해 주세요.</li><li><strong>유저 정보 조회</strong>와 <strong>채팅 메시지 조회</strong> 권한을 설정해 주세요.</li><li>로그인 리디렉션 URL을 아래 주소로 등록해 주세요.<code class="block-code" id="redirect-uri">http://localhost:3000/auth/chzzk/callback</code></li><li>서버의 <code>.env</code>에 Client ID와 Client Secret을 입력해 주세요. 비밀 키는 브라우저에 입력하지 않아요.</li></ol><button class="primary" id="setup-demo">먼저 체험하기</button></dialog>
-    <dialog id="guide-dialog"><button class="dialog-close" aria-label="닫기" data-close>×</button><span class="eyebrow">QUICK GUIDE</span><h2>방송 시작 전, 딱 세 가지만</h2><ol><li><strong>채널 연결</strong><p>치지직 연결 버튼으로 스트리머 계정에 로그인해요. 모집을 시작하고 시청자에게 <code>!참여</code>를 안내해 주세요.</p></li><li><strong>목소리 확인</strong><p>진행자 브라우저에서 TTS를 켜고 음성 테스트를 눌러 주세요. 당첨자의 일반 채팅은 최대 150자씩 차례대로 읽어요.</p></li><li><strong>OBS 소리 확인</strong><p>이 브라우저의 소리를 OBS에서 캡처하도록 설정한 뒤, 오디오 미터와 짧은 녹화로 확인해 주세요. 소리는 진행자 브라우저에서만 켜 두세요.</p></li></ol><div class="guide-note">발언권은 당첨 즉시 30초. 시간 종료·발언권 종료·연결 끊김 시 음성과 대기열을 함께 멈춰요. 숫자 투표와 확률 룰렛은 위 탭에서 사용할 수 있어요.</div></dialog>
+    <dialog id="guide-dialog"><button class="dialog-close" aria-label="닫기" data-close>×</button><span class="eyebrow">QUICK GUIDE</span><h2>방송 시작 전, 딱 세 가지만</h2><ol><li><strong>채널 연결</strong><p>치지직 연결 버튼으로 스트리머 계정에 로그인해요. 모집을 켜면 시청자가 채팅 한 번을 입력하는 즉시 참가해요.</p></li><li><strong>목소리 확인</strong><p>진행자 브라우저에서 TTS를 켜고 음성 테스트를 눌러 주세요. 당첨자의 일반 채팅은 최대 150자씩 차례대로 읽어요.</p></li><li><strong>OBS 소리 확인</strong><p>이 브라우저의 소리를 OBS에서 캡처하도록 설정한 뒤, 오디오 미터와 짧은 녹화로 확인해 주세요. 소리는 진행자 브라우저에서만 켜 두세요.</p></li></ol><div class="guide-note">발언권은 당첨 즉시 30초. 시간 종료·발언권 종료·연결 끊김 시 음성과 대기열을 함께 멈춰요. 숫자 투표와 확률 룰렛은 위 탭에서 사용할 수 있어요.</div></dialog>
     <dialog id="reset-dialog"><h2>참가자를 초기화할까요?</h2><p>현재 발언권, 참가자 목록과 이전 당첨 기록이 모두 초기화돼요.</p><div class="button-row"><button class="secondary" data-close>취소</button><button class="danger-outline" id="confirm-reset">초기화</button></div></dialog>
   </body>
 </html>

@@ -125,7 +125,9 @@ export class Room extends EventEmitter {
     const nickname = typeof event.profile?.nickname === 'string' ? event.profile.nickname.slice(0, 40) : '시청자';
     const id = event.senderChannelId;
     let kind = 'chat';
-    if (text === '!참여' && this.collecting && this.participants.size < 1000) {
+    // During recruitment, one normal chat message is enough to participate.
+    // Identity uses the immutable CHZZK channel ID, never a display nickname.
+    if (this.collecting && this.participants.size < 1000) {
       this.participants.set(id, { id, nickname });
       kind = 'join';
     }

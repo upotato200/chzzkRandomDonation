@@ -16,14 +16,14 @@ test('채널 격리: 다른 채널의 채팅은 참가·투표·TTS에 반영하
   room.close();
 });
 
-test('중복 참가·채팅 재전송을 제거하고 동일 닉네임이어도 ID가 다르면 구분한다', () => {
+test('모집 중이면 일반 채팅으로 자동 참가하고, 중복 재전송은 제거한다', () => {
   const room = new Room('a', 'A', true, () => 100000);
   room.collecting = true;
-  const a = event('a', 'one', '!참여', 100000);
+  const a = event('a', 'one', '안녕하세요', 100000);
   a.profile.nickname = '같은이름';
   assert.equal(room.ingest(a), true);
   assert.equal(room.ingest(a), false);
-  room.ingest({ ...a, senderChannelId: 'two' });
+  room.ingest({ ...a, senderChannelId: 'two', content: '!투표1', messageTime: 100001 });
   assert.equal(room.participants.size, 2);
   room.close();
 });
