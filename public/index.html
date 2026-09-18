@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0b0e13">
+    <meta name="description" content="시청자와 함께하는 너의 차례. 30초 채팅 TTS, 실시간 숫자 투표, 확률 룰렛을 한곳에서.">
+    <title>너의 차례 — 라이브 참여 스튜디오</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/style.css">
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <svg class="symbols" aria-hidden="true"><defs>
+      <symbol id="i-play" viewBox="0 0 24 24"><path d="m9 5 11 7-11 7Z"/></symbol>
+      <symbol id="i-wheel" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.7 5.7l12.6 12.6M5.7 18.3 18.3 5.7"/><circle cx="12" cy="12" r="2"/></symbol>
+      <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2M17 5a3 3 0 0 1 0 6m2 9v-2a6 6 0 0 0-2-4"/></symbol>
+      <symbol id="i-voice" viewBox="0 0 24 24"><path d="M4 10v4m4-8v12m4-15v18m4-15v12m4-8v4"/></symbol>
+      <symbol id="i-vote" viewBox="0 0 24 24"><path d="M5 20V10m7 10V4m7 16v-7"/></symbol>
+      <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 11a9 9 0 0 1-9 9H3l2-5a9 9 0 1 1 16-4Z"/><path d="M8 10h8m-8 4h5"/></symbol>
+      <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></symbol>
+      <symbol id="i-link" viewBox="0 0 24 24"><path d="m10 14 4-4m-6 5-1 1a4 4 0 0 1-6-6l4-4a4 4 0 0 1 6 0m2 3 1-1a4 4 0 0 1 6 6l-4 4a4 4 0 0 1-6 0"/></symbol>
+      <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></symbol>
+    </defs></svg>
+    <header class="header">
+      <a class="brand" href="/" aria-label="너의 차례 홈"><span class="brand-mark"><svg><use href="#i-voice"/></svg></span>너의 차례<span class="brand-label">STUDIO</span></a>
+      <span class="header-description">시청자와 함께 만드는 다음 순간</span>
+      <div class="header-actions"><button class="ghost" id="guide-open">방송 가이드</button><button class="connect" id="connect"><svg><use href="#i-link"/></svg><span>치지직 연결</span></button></div>
+    </header>
+    <main>
+      <div class="intro">
+        <div><p class="eyebrow">YOUR TURN, ON AIR</p><h1>오늘은, 누구의 차례?</h1><p class="subtitle">한 사람의 채팅이 목소리가 되는 시간.</p></div>
+        <div class="connection-box"><span class="status-badge" id="connection-badge">연결 전</span><span id="channel-name">나의 라이브 스튜디오</span><button class="text-button" id="disconnect" hidden>연결 해제</button></div>
+      </div>
+      <div class="connection-notice" id="connection-notice"><span id="connection-message">치지직을 연결하면 시청자 채팅이 여기에 모여요.</span><button id="demo-start" class="text-button">먼저 체험하기 <span aria-hidden="true">↗</span></button><button id="reconnect" class="text-button" hidden>다시 연결</button></div>
+      <nav class="tabs" aria-label="방송 도구">
+        <button class="tab active" data-tab="viewer" aria-current="page"><svg><use href="#i-users"/></svg>시청자 추첨 <span class="tab-tag">30초 TTS</span></button>
+        <button class="tab" data-tab="poll"><svg><use href="#i-vote"/></svg>숫자 투표</button>
+        <button class="tab" data-tab="roulette"><svg><use href="#i-wheel"/></svg>확률 룰렛</button>
+      </nav>
+
+      <section id="viewer-view" class="tool-view">
+        <div class="studio-grid">
+          <aside class="panel participants-panel">
+            <div class="panel-heading"><h2><svg><use href="#i-users"/></svg>참가자</h2><span class="count" id="participant-count">0</span></div>
+            <div class="join-instruction"><span>채팅에</span><code>!참여</code><span>를 입력하면 참가</span></div>
+            <div class="participant-list" id="participants"><div class="empty"><svg><use href="#i-users"/></svg><p>첫 참가자를 기다리고 있어요</p><small>채널 연결 후 모집을 시작해 주세요.</small></div></div>
+            <div class="participants-footer"><label class="check"><input type="checkbox" id="exclude-winners" checked>이전 당첨자 제외</label><div class="button-row"><button id="collect" class="secondary" disabled>모집 시작</button><button id="reset-participants" class="ghost" disabled>초기화</button></div></div>
+          </aside>
+
+          <section class="panel stage">
+            <div class="stage-heading"><span class="small-caps">VIEWER ROULETTE</span><span class="subtle" id="eligible-count">참가자 0명</span></div>
+            <div class="wheel-wrap"><span class="wheel-pointer" aria-hidden="true"></span><div class="wheel" id="viewer-wheel"></div><div class="wheel-hub"><svg><use href="#i-voice"/></svg><span>YOUR<br>TURN</span></div></div>
+            <div class="stage-caption" aria-live="polite"><h2 id="draw-title">다음 주인공을 만나볼까요?</h2><p id="draw-description">당첨되는 순간, 30초 동안 채팅이 음성으로 나와요.</p></div>
+            <button class="primary draw-button" id="draw-viewer" disabled><svg><use href="#i-wheel"/></svg>룰렛 돌리기</button>
+            <p class="stage-footnote">모든 참가자에게 동일한 당첨 확률</p>
+          </section>
+
+          <aside class="panel voice-panel">
+            <div class="panel-heading"><h2><svg><use href="#i-voice"/></svg>지금, 너의 목소리</h2><span class="mini-badge" id="speaker-status">대기 중</span></div>
+            <div class="speaker-avatar" id="speaker-avatar">?</div><h3 id="speaker-name">아직 주인공이 없어요</h3><p class="subtle speaker-hint" id="speaker-hint">룰렛을 돌려 한 사람을 만나보세요.</p>
+            <div class="timer"><span id="seconds">30</span><span class="timer-unit">초</span></div><div class="timer-track"><div id="timer-fill"></div></div>
+            <div class="speaking-text" id="speaking-text"><svg><use href="#i-chat"/></svg><p>당첨자의 채팅을 기다리고 있어요.</p></div>
+            <button id="stop-speaker" class="danger-outline" disabled><svg><use href="#i-stop"/></svg>발언권 종료</button>
+            <p class="panel-footnote">30초가 지나면 음성도 자동으로 멈춰요.</p>
+          </aside>
+        </div>
+      </section>
+
+      <section id="poll-view" class="tool-view" hidden>
+        <div class="two-columns">
+          <section class="panel editor-panel"><div class="panel-heading"><h2><svg><use href="#i-vote"/></svg>새로운 숫자 투표</h2><span class="mini-badge">1인 1표</span></div>
+            <form id="poll-form"><label for="poll-question">시청자에게 물어볼 질문</label><input id="poll-question" maxlength="100" value="오늘 방송, 다음에 뭐 할까요?" required>
+              <label for="poll-options">선택지 <span class="subtle">한 줄에 하나씩 · 2~10개</span></label><textarea id="poll-options" rows="6" required>게임 한 판 더
+시청자와 수다
+밸런스 게임</textarea>
+              <p class="hint">채팅에 <code>!투표1</code>, <code>!투표2</code>처럼 입력해요.<br>다시 투표하면 마지막 선택으로 변경돼요.</p>
+              <button class="primary" id="poll-start" type="submit" disabled>투표 시작하기 <svg><use href="#i-arrow"/></svg></button>
+            </form>
+          </section>
+          <section class="panel results-panel"><div class="panel-heading"><h2>실시간 투표 결과</h2><span class="mini-badge" id="poll-status">시작 전</span></div><h3 id="poll-title">시청자의 선택을 기다려요</h3><div id="poll-results" class="poll-results"><div class="empty"><svg><use href="#i-vote"/></svg><p>투표를 시작하면 결과가 표시돼요.</p></div></div><div class="results-footer"><span id="poll-total" class="subtle">참여 0명</span><button id="poll-stop" class="secondary" disabled>투표 마감</button></div></section>
+        </div>
+      </section>
+
+      <section id="roulette-view" class="tool-view" hidden>
+        <div class="two-columns roulette-columns">
+          <section class="panel editor-panel"><div class="panel-heading"><h2><svg><use href="#i-wheel"/></svg>확률 설정</h2><span class="mini-badge">가중치 추첨</span></div><p class="hint">가중치가 클수록 당첨될 확률이 높아져요.<br>0을 입력한 항목은 추첨에서 제외돼요.</p><div class="weight-head"><span>항목</span><span>가중치</span><span>확률</span></div><div id="weight-items"></div><button id="add-weight" class="secondary">+ 항목 추가</button><p class="hint">예: 1, 1, 2 → 25%, 25%, 50%</p></section>
+          <section class="panel stage probability-stage"><div class="stage-heading"><span class="small-caps">WEIGHTED ROULETTE</span><span class="subtle">확률을 정하고, 운에 맡기세요</span></div><div class="wheel-wrap"><span class="wheel-pointer" aria-hidden="true"></span><div class="wheel" id="weighted-wheel"></div><div class="wheel-hub"><svg><use href="#i-wheel"/></svg><span>GOOD<br>LUCK</span></div></div><h2 id="weighted-result" aria-live="polite">어떤 항목이 나올까요?</h2><button id="draw-weighted" class="primary draw-button" disabled>확률 룰렛 돌리기 <svg><use href="#i-wheel"/></svg></button></section>
+        </div>
+      </section>
+
+      <div class="bottom-grid">
+        <section class="panel audio-panel"><div class="panel-heading"><h2><svg><use href="#i-voice"/></svg>목소리 설정</h2><label class="switch-label"><span id="audio-label">TTS 꺼짐</span><input id="audio-enabled" type="checkbox" role="switch" aria-label="TTS 켜기"><span class="switch-track"></span></label></div>
+          <div class="audio-controls"><div class="voice-field"><label for="voice-select">브라우저 목소리</label><select id="voice-select"><option value="">기본 한국어 음성</option></select></div><div><label for="rate">읽기 속도 <output id="rate-value">1.0×</output></label><input type="range" id="rate" min="0.5" max="1.5" step="0.1" value="1"></div><div><label for="volume">볼륨 <output id="volume-value">80%</output></label><input type="range" id="volume" min="0" max="1" step="0.05" value="0.8"></div></div>
+          <div class="audio-footer"><span id="audio-status">이 브라우저에서 소리가 재생돼요.</span><button id="test-voice" class="secondary"><svg><use href="#i-play"/></svg>음성 테스트</button><button id="stop-audio" class="ghost">음성 중지</button></div>
+        </section>
+        <section class="panel chat-panel"><div class="panel-heading"><h2><svg><use href="#i-chat"/></svg>채팅 모니터</h2><span class="subtle" id="chat-mode">연결 대기</span></div><div id="messages" class="messages"><p class="empty-chat">치지직 연결 후 채팅을 확인할 수 있어요.</p></div><form id="demo-chat" hidden><input id="demo-nickname" placeholder="닉네임" aria-label="체험 닉네임" maxlength="40" list="sample-names" required><datalist id="sample-names"></datalist><input id="demo-text" placeholder="체험 채팅 입력" aria-label="체험 채팅" maxlength="150" required><button type="submit" class="send-button" aria-label="체험 채팅 전송"><svg><use href="#i-arrow"/></svg></button></form></section>
+      </div>
+      <footer class="footer"><span>너의 차례 <span class="subtle">· 시청자와 조금 더 가까이</span></span><span>브라우저 TTS <span class="footer-dot">·</span> CHZZK Open API</span></footer>
+    </main>
+    <div id="toast" role="status" aria-live="polite" hidden></div>
+    <dialog id="setup-dialog"><button class="dialog-close" aria-label="닫기" data-close>×</button><span class="eyebrow">CONNECT YOUR CHANNEL</span><h2>치지직을 연결해 볼까요?</h2><p>서버에 치지직 앱 설정이 아직 없어요. 앱 설정 후 서버를 다시 시작하면 연결할 수 있어요.</p><ol><li><a href="https://developers.chzzk.naver.com/application" target="_blank" rel="noopener noreferrer">치지직 개발자 센터</a>에서 앱을 등록해 주세요.</li><li><strong>유저 정보 조회</strong>와 <strong>채팅 메시지 조회</strong> 권한을 설정해 주세요.</li><li>로그인 리디렉션 URL을 아래 주소로 등록해 주세요.<code class="block-code" id="redirect-uri">http://localhost:3000/auth/chzzk/callback</code></li><li>서버의 <code>.env</code>에 Client ID와 Client Secret을 입력해 주세요. 비밀 키는 브라우저에 입력하지 않아요.</li></ol><button class="primary" id="setup-demo">먼저 체험하기</button></dialog>
+    <dialog id="guide-dialog"><button class="dialog-close" aria-label="닫기" data-close>×</button><span class="eyebrow">QUICK GUIDE</span><h2>방송 시작 전, 딱 세 가지만</h2><ol><li><strong>채널 연결</strong><p>치지직 연결 버튼으로 스트리머 계정에 로그인해요. 모집을 시작하고 시청자에게 <code>!참여</code>를 안내해 주세요.</p></li><li><strong>목소리 확인</strong><p>진행자 브라우저에서 TTS를 켜고 음성 테스트를 눌러 주세요. 당첨자의 일반 채팅은 최대 150자씩 차례대로 읽어요.</p></li><li><strong>OBS 소리 확인</strong><p>이 브라우저의 소리를 OBS에서 캡처하도록 설정한 뒤, 오디오 미터와 짧은 녹화로 확인해 주세요. 소리는 진행자 브라우저에서만 켜 두세요.</p></li></ol><div class="guide-note">발언권은 당첨 즉시 30초. 시간 종료·발언권 종료·연결 끊김 시 음성과 대기열을 함께 멈춰요. 숫자 투표와 확률 룰렛은 위 탭에서 사용할 수 있어요.</div></dialog>
+    <dialog id="reset-dialog"><h2>참가자를 초기화할까요?</h2><p>현재 발언권, 참가자 목록과 이전 당첨 기록이 모두 초기화돼요.</p><div class="button-row"><button class="secondary" data-close>취소</button><button class="danger-outline" id="confirm-reset">초기화</button></div></dialog>
+  </body>
+</html>
