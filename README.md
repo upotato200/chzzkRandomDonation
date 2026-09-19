@@ -18,6 +18,8 @@
 | `CHZZK_CLIENT_ID` | 치지직 개발자 센터에서 발급한 Client ID |
 | `CHZZK_CLIENT_SECRET` | 치지직 개발자 센터에서 발급한 Client Secret |
 
+Railway에서는 플랫폼이 제공하는 실제 방문자 IP(`X-Real-IP`)로 새 세션 요청을 제한합니다. `X-Forwarded-For`는 사용하지 않습니다.
+
 `PORT`는 Railway가 자동으로 주므로 직접 추가하지 않습니다. `HOST`도 Railway에서는 필요 없습니다. 로컬에서만 `.env.example`을 복사해 `.env`로 만들고 `HOST=127.0.0.1`을 사용하면 됩니다.
 
 ## 치지직 개발자 센터 설정

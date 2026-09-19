@@ -20,12 +20,43 @@ export function createApp(config, dependencies = {}) {
   const makeConnection = dependencies.makeConnection || ((account, room) => new ChatConnection(api, account, room));
   const sessions = new Map();
   const channels = new Map();
+  const streams = new Set();
+  const demoStreams = new Set();
+  const sessionStarts = new Map();
+  const limits = {
+    sessionStartWindowMs: config.sessionStartWindowMs ?? 10 * 60 * 1000,
+    maxSessionStartsPerClient: config.maxSessionStartsPerClient ?? 8,
+    maxTrackedClients: config.maxTrackedClients ?? 2000,
+    preAuthSessionTtlMs: config.preAuthSessionTtlMs ?? 10 * 60 * 1000,
+    sessionTtlMs: config.sessionTtlMs ?? 12 * 60 * 60 * 1000,
+    maxStreams: config.maxStreams ?? 250,
+    maxDemoStreams: config.maxDemoStreams ?? 25,
+  };
+  const trustedProxy = config.trustedProxy ?? Boolean(process.env.RAILWAY_ENVIRONMENT_NAME);
   const json = (res, status, body) => {
     res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify(body));
   };
   const cookie = (res, id, age = 43200) => res.setHeader('Set-Cookie',
     `studio_sid=${id}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${age}${secure ? '; Secure' : ''}`);
+  const clientAddress = (req) => {
+    // Railway provides X-Real-IP as the client address; never trust client-supplied X-Forwarded-For.
+    const realIp = trustedProxy && req.headers['x-real-ip'];
+    const value = typeof realIp === 'string' ? realIp.trim() : req.socket.remoteAddress;
+    return value?.slice(0, 64) || 'unknown';
+  };
+
+  function allowNewSession(req) {
+    const now = Date.now();
+    const key = clientAddress(req);
+    const starts = (sessionStarts.get(key) || []).filter((time) => time > now - limits.sessionStartWindowMs);
+    if (starts.length >= limits.maxSessionStartsPerClient) throw new AppError('새 연결 요청이 많아요. 잠시 후 다시 시도해 주세요.', 429);
+    if (!sessionStarts.has(key) && sessionStarts.size >= limits.maxTrackedClients) {
+      throw new AppError('새 연결 요청이 많아요. 잠시 후 다시 시도해 주세요.', 429);
+    }
+    starts.push(now);
+    sessionStarts.set(key, starts);
+  }
   const redirect = (res, location) => { res.writeHead(302, { Location: location }); res.end(); };
 
   function closeSession(session) {
@@ -47,8 +78,14 @@ export function createApp(config, dependencies = {}) {
   }
 
   const housekeeping = setInterval(() => {
+    const now = Date.now();
     for (const [id, session] of sessions) {
-      if (session.expiresAt <= Date.now()) { closeSession(session); sessions.delete(id); }
+      if (session.expiresAt <= now) { closeSession(session); sessions.delete(id); }
+    }
+    for (const [key, starts] of sessionStarts) {
+      const active = starts.filter((time) => time > now - limits.sessionStartWindowMs);
+      if (active.length) sessionStarts.set(key, active);
+      else sessionStarts.delete(key);
     }
     cleanupChannels();
   }, 60000);
@@ -63,8 +100,9 @@ export function createApp(config, dependencies = {}) {
       session = null;
     }
     if (!session && create) {
+      allowNewSession(req);
       if (sessions.size >= 1000) throw new AppError('잠시 후 다시 접속해 주세요.', 503);
-      session = { id: opaque(), csrf: opaque(), audioId: randomUUID(), expiresAt: Date.now() + 43200000,
+      session = { id: opaque(), csrf: opaque(), audioId: randomUUID(), expiresAt: Date.now() + limits.preAuthSessionTtlMs,
         streams: new Set(), calls: [], oauth: null };
       sessions.set(session.id, session);
       cookie(res, session.id);
@@ -147,6 +185,7 @@ export function createApp(config, dependencies = {}) {
           session.csrf = opaque();
           session.demoRoom = null;
           session.channelId = me.channelId;
+          session.expiresAt = Date.now() + limits.sessionTtlMs;
           sessions.set(session.id, session);
           cookie(res, session.id);
           void channel.connection.start();
@@ -157,8 +196,13 @@ export function createApp(config, dependencies = {}) {
         const session = getSession(req, res);
         const room = roomFor(session);
         if (session.streams.size >= 5) throw new AppError('열려 있는 진행자 탭을 닫아 주세요.', 429);
+        if (streams.size >= limits.maxStreams || (room.demo && demoStreams.size >= limits.maxDemoStreams)) {
+          throw new AppError('열려 있는 연결이 많아요. 잠시 후 다시 시도해 주세요.', 429);
+        }
         res.writeHead(200, { 'Content-Type': 'text/event-stream', Connection: 'keep-alive', 'X-Accel-Buffering': 'no' });
         session.streams.add(res);
+        streams.add(res);
+        if (room.demo) demoStreams.add(res);
         const send = (type, data) => {
           if (res.writableLength > 1024 * 1024) return res.end();
           res.write(`event: ${type}\ndata: ${JSON.stringify(data)}\n\n`);
@@ -179,6 +223,8 @@ export function createApp(config, dependencies = {}) {
           room.off('change', state);
           room.off('tts', tts);
           session.streams.delete(res);
+          streams.delete(res);
+          demoStreams.delete(res);
         });
         return;
       }
