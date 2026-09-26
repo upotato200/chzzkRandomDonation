@@ -16,6 +16,8 @@ export function createApp(config, dependencies = {}) {
   const origin = new URL(config.origin).origin;
   const secure = origin.startsWith('https:');
   const configured = Boolean(config.clientId && config.clientSecret && config.redirectUri);
+  const googleVerificationFile = 'google419d718e1e64f7be.html';
+  const googleVerificationBody = `google-site-verification: ${googleVerificationFile}`;
   const api = dependencies.api || new ChzzkApi(config);
   const makeConnection = dependencies.makeConnection || ((account, room) => new ChatConnection(api, account, room));
   const sessions = new Map();
@@ -140,6 +142,10 @@ export function createApp(config, dependencies = {}) {
       const url = new URL(req.url, origin);
       const path = url.pathname;
       if (req.method === 'GET' && path === '/health') return json(res, 200, { status: 'ok' });
+      if (req.method === 'GET' && path === `/${googleVerificationFile}`) {
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+        return res.end(googleVerificationBody);
+      }
       if (req.method === 'GET' && path === '/robots.txt') {
         res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
         return res.end(`User-agent: *\nAllow: /\nSitemap: ${origin}/sitemap.xml\n`);

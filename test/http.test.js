@@ -120,6 +120,8 @@ test('검색엔진용 canonical, robots와 sitemap을 제공한다', async (t) =
   const home = await (await user.get('/')).text();
   assert.match(home, /치지직 시청자 룰렛·채팅 TTS·숫자 투표/);
   assert.match(home, /<link rel="canonical" href="http:\/\/localhost:3000\/">/);
+  assert.equal((await (await fetch(origin + '/google419d718e1e64f7be.html')).text()),
+    'google-site-verification: google419d718e1e64f7be.html');
   const robots = await (await fetch(origin + '/robots.txt')).text();
   assert.match(robots, /Allow: \//);
   assert.match(robots, /Sitemap: http:\/\/localhost:3000\/sitemap.xml/);
