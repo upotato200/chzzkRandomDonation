@@ -140,6 +140,14 @@ export function createApp(config, dependencies = {}) {
       const url = new URL(req.url, origin);
       const path = url.pathname;
       if (req.method === 'GET' && path === '/health') return json(res, 200, { status: 'ok' });
+      if (req.method === 'GET' && path === '/robots.txt') {
+        res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+        return res.end(`User-agent: *\nAllow: /\nSitemap: ${origin}/sitemap.xml\n`);
+      }
+      if (req.method === 'GET' && path === '/sitemap.xml') {
+        res.writeHead(200, { 'Content-Type': 'application/xml; charset=utf-8' });
+        return res.end(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>${origin}/</loc></url></urlset>\n`);
+      }
       if (req.headers['sec-fetch-site'] === 'cross-site' && path.startsWith('/api/')) throw new AppError('다른 사이트에서 요청할 수 없어요.', 403);
       if (req.method === 'GET' && path === '/api/bootstrap') {
         const session = getSession(req, res, true);
@@ -310,9 +318,9 @@ export function createApp(config, dependencies = {}) {
         '/style.css': ['style.css', 'text/css'], '/favicon.svg': ['favicon.svg', 'image/svg+xml'] };
       if (req.method === 'GET' && assets[path]) {
         const [file, mime] = assets[path];
-        const content = await readFile(root + 'public/' + file);
+        const content = await readFile(root + 'public/' + file, 'utf8');
         res.writeHead(200, { 'Content-Type': `${mime}; charset=utf-8` });
-        return res.end(content);
+        return res.end(file === 'index.html' ? content.replaceAll('{{APP_ORIGIN}}', origin) : content);
       }
       throw new AppError('페이지를 찾을 수 없어요.', 404);
     } catch (error) {

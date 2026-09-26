@@ -112,3 +112,17 @@ test('데모 SSE 전역 상한은 다른 세션을 막고 연결 종료 뒤에�
   assert.equal(recovered.status, 200);
   await recovered.body.cancel();
 });
+
+
+test('검색엔진용 canonical, robots와 sitemap을 제공한다', async (t) => {
+  const { origin, client } = await fixture(t);
+  const user = await client();
+  const home = await (await user.get('/')).text();
+  assert.match(home, /치지직 시청자 룰렛·채팅 TTS·숫자 투표/);
+  assert.match(home, /<link rel="canonical" href="http:\/\/localhost:3000\/">/);
+  const robots = await (await fetch(origin + '/robots.txt')).text();
+  assert.match(robots, /Allow: \//);
+  assert.match(robots, /Sitemap: http:\/\/localhost:3000\/sitemap.xml/);
+  const sitemap = await (await fetch(origin + '/sitemap.xml')).text();
+  assert.match(sitemap, /<loc>http:\/\/localhost:3000\/<\/loc>/);
+});

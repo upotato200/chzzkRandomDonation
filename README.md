@@ -22,6 +22,10 @@ Railway에서는 플랫폼이 제공하는 실제 방문자 IP(`X-Real-IP`)로 �
 
 `PORT`는 Railway가 자동으로 주므로 직접 추가하지 않습니다. `HOST`도 Railway에서는 필요 없습니다. 로컬에서만 `.env.example`을 복사해 `.env`로 만들고 `HOST=127.0.0.1`을 사용하면 됩니다.
 
+## 검색 노출
+
+홈페이지는 `robots.txt`, `sitemap.xml`, canonical URL, 한국어 검색 제목과 설명을 제공합니다. 배포 후 Google Search Console에 Railway 공개 도메인을 등록하고 `https://내도메인/sitemap.xml`을 제출하면 색인 상태를 확인할 수 있습니다.
+
 ## 치지직 개발자 센터 설정
 
 치지직 개발자 센터에서 앱을 만들고 다음을 설정합니다.
